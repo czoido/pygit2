@@ -18,13 +18,24 @@ if(NOT CFFI_RESULT EQUAL 0)
     message(FATAL_ERROR "CFFI source generation failed (exit code ${CFFI_RESULT})")
 endif()
 
-# _libgit2: CFFI Python→libgit2 bridge (stable ABI / abi3, matches ffi.compile() output)
-Python3_add_library(_libgit2 MODULE ${CFFI_GENERATED_C})
-target_compile_definitions(_libgit2 PRIVATE Py_LIMITED_API=0x03020000)
-if(WIN32)
-    set_target_properties(_libgit2 PROPERTIES SUFFIX ".pyd")
-else()
-    set_target_properties(_libgit2 PROPERTIES SUFFIX ".abi3.so")
+# _libgit2: CFFI Python→libgit2 bridge
+# Use stable ABI (abi3) by default; free-threaded Python (GIL disabled) does not
+# support Py_LIMITED_API so fall back to the version-specific suffix.
+execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c
+        "import sysconfig; print(sysconfig.get_config_var('Py_GIL_DISABLED') or 0)"
+    OUTPUT_VARIABLE _PYTHON_GIL_DISABLED
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+Python3_add_library(_libgit2 MODULE WITH_SOABI ${CFFI_GENERATED_C})
+if(NOT _PYTHON_GIL_DISABLED EQUAL 1)
+    target_compile_definitions(_libgit2 PRIVATE Py_LIMITED_API=0x03020000)
+    if(WIN32)
+        set_target_properties(_libgit2 PROPERTIES SUFFIX ".pyd")
+    else()
+        set_target_properties(_libgit2 PROPERTIES SUFFIX ".abi3.so")
+    endif()
 endif()
 target_link_libraries(_libgit2 PRIVATE libgit2::libgit2)
 install(TARGETS _libgit2 DESTINATION pygit2)
