@@ -35,7 +35,10 @@ Changelog = "https://github.com/libgit2/pygit2/blob/master/CHANGELOG.md"
 Funding = "https://github.com/sponsors/jdavid"
 
 [tool.conan-py-build]
-extra-arguments = ["-o=libgit2/*:shared=True"]
+extra-arguments = [
+    "-o=libgit2/*:shared=True",
+    "-o=openssl/*:no_fips=True",
+]
 wheel.packages = ["pygit2"]
 
 [tool.conan-py-build.version]
