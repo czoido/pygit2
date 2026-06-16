@@ -75,7 +75,7 @@ before-test = "pip install -r {package}/requirements-test.txt"
 test-skip = "*-*linux_ppc64le pp*-macosx_arm64"
 
 [tool.cibuildwheel.linux]
-before-all = "pip install conan && conan profile detect --force && yum install -y perl-IPC-Cmd"
+before-all = "pip install conan && conan profile detect --force && yum install -y perl-core"
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 
 [[tool.cibuildwheel.overrides]]
